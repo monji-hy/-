@@ -1,66 +1,196 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>웹 문서 만들기</title>
-    <link rel="stylesheet" href="css/structure.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>투두 리스트</title>
+  <style>
+    /* 기존 스타일 유지 (생략 가능) */
+    body {
+      background: #f2f4f8;
+      font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .todo-container {
+      background: white;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #43a047;
+    }
+    .csv-btn {
+      background-color: #2196F3;
+      margin-top: 10px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      display: flex;
+      align-items: center;
+      background: #f9f9f9;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      justify-content: space-between;
+    }
+    li.completed {
+      background: #e0e0e0;
+      text-decoration: line-through;
+      color: #777;
+    }
+    li input[type="checkbox"] {
+      margin-right: 12px;
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+    li span {
+      flex: 1;
+      font-size: 16px;
+      word-wrap: break-word;
+    }
+    .delete-btn {
+      background: transparent;
+      border: none;
+      color: #e74c3c;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+  </style>
 </head>
 <body>
-    <div id="container">
-    <header>
-        <div id="logo">
-            <a href="#"><h1>Dream Jeju</h1></a>
-        </div>
-        <nav>
+  <div class="todo-container">
+    <h1>📝 오늘 할 일</h1>
+    <form id="todo-form">
+      <input type="text" id="todo-input" placeholder="할 일을 입력하세요..." required />
+      <button type="submit">생성</button>
+    </form>
+    <ul id="todo-list"></ul>
+    <button class="csv-btn" id="download-csv">CSV로 저장</button>
+  </div>
 
-            <ul id="topMenu">
-                <li><a href="#">단체 여행</a></li>
-                <li><a href="#">맞춤 여행</a></li>
-                <li><a href="#">갤러리</a></li>
-                <li><a href="#">문의하기</a></li>
-            </ul>
-        </nav>
-    </header>
-    <main class="contents">
-        <section id="heading">
-            <h2>몸과 마음이 치유되는 섬</h2>
-            <div class="detail">
-                <img src="images/healing.jpg">
-                <b><p>쉼(healing)의 공간으로 안내합니다.</p></b>
-                <p>탁 트인 바다, 시원한 바람에 몸을 맡기고 뚜벅뚜벅 오름을 오르고 올렛길을 걷다보면 온전히 나에게 집중할 수 있습니다.</p>
-            </div>
-            <div class="schedule">
-                <h3>상세일정</h3>
-                <ul>
-                    <li>여행 기간 : 2박 3일</li>
-                    <li>여행 일정 : 여행 일정은 상담을 통해 결정 및 조정 가능합니다:) </li>
-                </ul>
-            </div>
-        </section>
-        <section id="actibity">
-            <h2>다양한 액티비티가 기다리는 섬</h2>
-            <div class="detail">
-                <img src="images/activity.jpg">
-                <b><p>모험과 스릴이 넘치는 레저의 천국으로 안내합니다.</p></b>
-                <p>둘러보기만 하는 여행을 하셨나요? </p>
-                <p>하늘을 날며 시워난 바다를 내려다보는 패러글라이딩과 투명한 물빛 속을 여행하는 스킨스쿠버...
-                    아름다운 제주 해안도로를 씽씽 전동바이크나 전동킥보드로 달려보세요.
-                    시원한 바다를 가까이서 느낄 수 있는 요트 체험과 배낚시도 뻬놓을 수 없겠죠?
-                </p>
-            </div>
-        </section>
-    </main>
-    <footer>
-        <section id="bottomMenu">
-            <ul>
-                <li><a href="#">회사 소개</a></li>
-                <li><a href="#">개인정보처리방침</a></li>
-                <li><a href="#">여행약관</a></li>
-                <li><a href="#">사이트맵</a></li>
-            </ul>    
-        </section>
-    </footer>
-</div>
+  <script>
+    const form = document.getElementById('todo-form');
+    const input = document.getElementById('todo-input');
+    const list = document.getElementById('todo-list');
+    const downloadBtn = document.getElementById('download-csv');
+
+    let todos = [];
+
+    // LocalStorage 불러오기
+    window.onload = () => {
+      const saved = localStorage.getItem('todos');
+      if (saved) {
+        todos = JSON.parse(saved);
+        renderTodos();
+      }
+    };
+
+    // LocalStorage 저장
+    function saveToLocalStorage() {
+      localStorage.setItem('todos', JSON.stringify(todos));
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (text !== '') {
+        const todo = {
+          text: text,
+          completed: false
+        };
+        todos.push(todo);
+        input.value = '';
+        saveToLocalStorage();
+        renderTodos();
+      }
+    });
+
+    function renderTodos() {
+      list.innerHTML = '';
+      todos.forEach((todo, index) => {
+        const li = document.createElement('li');
+        li.classList.toggle('completed', todo.completed);
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = todo.completed;
+        checkbox.addEventListener('change', () => {
+          todo.completed = checkbox.checked;
+          saveToLocalStorage();
+          renderTodos();
+        });
+
+        const span = document.createElement('span');
+        span.textContent = todo.text;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '제거';
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.addEventListener('click', () => {
+          todos.splice(index, 1);
+          saveToLocalStorage();
+          renderTodos();
+        });
+
+        li.appendChild(checkbox);
+        li.appendChild(span);
+        li.appendChild(deleteBtn);
+        list.appendChild(li);
+      });
+    }
+
+    // CSV 저장 기능
+    downloadBtn.addEventListener('click', () => {
+      if (todos.length === 0) return alert('할 일이 없습니다!');
+      let csv = '할 일,완료 여부\n';
+      todos.forEach(todo => {
+        csv += `"${todo.text}","${todo.completed ? '완료' : '미완료'}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'todo_list.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+  </script>
 </body>
 </html>
