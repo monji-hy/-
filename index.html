@@ -5,13 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>투두 리스트</title>
   <style>
-    /* 기존 스타일 유지 (생략 가능) */
     body {
       background: #f2f4f8;
       font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
       padding: 40px 20px;
+    }
+    header {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    header input[type="email"], header input[type="password"] {
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    header button {
+      padding: 6px 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
     }
     .todo-container {
       background: white;
@@ -93,6 +116,13 @@
   </style>
 </head>
 <body>
+  <header>
+    <input type="email" id="email" placeholder="이메일" />
+    <input type="password" id="password" placeholder="비밀번호" />
+    <button id="register">회원가입</button>
+    <button id="login">로그인</button>
+  </header>
+
   <div class="todo-container">
     <h1>📝 오늘 할 일</h1>
     <form id="todo-form">
@@ -108,34 +138,48 @@
     const input = document.getElementById('todo-input');
     const list = document.getElementById('todo-list');
     const downloadBtn = document.getElementById('download-csv');
+    const API = 'http://localhost:3000';
 
     let todos = [];
+    let token = '';
 
-    // LocalStorage 불러오기
-    window.onload = () => {
-      const saved = localStorage.getItem('todos');
-      if (saved) {
-        todos = JSON.parse(saved);
-        renderTodos();
-      }
+    document.getElementById('register').onclick = async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (res.ok) alert('회원가입 성공! 로그인 해주세요.');
+      else alert('회원가입 실패');
     };
 
-    // LocalStorage 저장
-    function saveToLocalStorage() {
-      localStorage.setItem('todos', JSON.stringify(todos));
-    }
+    document.getElementById('login').onclick = async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const res = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        token = data.token;
+        await loadTodosFromServer();
+      } else {
+        alert('로그인 실패');
+      }
+    };
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       const text = input.value.trim();
       if (text !== '') {
-        const todo = {
-          text: text,
-          completed: false
-        };
+        const todo = { text: text, completed: false };
         todos.push(todo);
         input.value = '';
-        saveToLocalStorage();
+        saveTodos();
         renderTodos();
       }
     });
@@ -151,7 +195,7 @@
         checkbox.checked = todo.completed;
         checkbox.addEventListener('change', () => {
           todo.completed = checkbox.checked;
-          saveToLocalStorage();
+          saveTodos();
           renderTodos();
         });
 
@@ -163,7 +207,7 @@
         deleteBtn.className = 'delete-btn';
         deleteBtn.addEventListener('click', () => {
           todos.splice(index, 1);
-          saveToLocalStorage();
+          saveTodos();
           renderTodos();
         });
 
@@ -173,6 +217,42 @@
         list.appendChild(li);
       });
     }
+
+    async function saveTodos() {
+      if (token) {
+        await fetch(`${API}/todos`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ todos })
+        });
+      } else {
+        localStorage.setItem('todos', JSON.stringify(todos));
+      }
+    }
+
+    async function loadTodosFromServer() {
+      const res = await fetch(`${API}/todos`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        todos = await res.json();
+        renderTodos();
+      } else {
+        alert('서버에서 할 일을 불러올 수 없습니다.');
+      }
+    }
+
+    // 로컬스토리지 불러오기 (비로그인 상태일 경우)
+    window.onload = () => {
+      const saved = localStorage.getItem('todos');
+      if (saved) {
+        todos = JSON.parse(saved);
+        renderTodos();
+      }
+    };
 
     // CSV 저장 기능
     downloadBtn.addEventListener('click', () => {
